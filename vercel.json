@@ -1,0 +1,37 @@
+{
+  "domains": [
+    "aimodels.cloud",
+    "www.aimodels.cloud",
+    "aimodel.com.im",
+    "www.aimodel.com.im",
+    "api.aimodels.cloud"
+  ],
+  "buildCommand": "npm run build",
+  "outputDirectory": ".next",
+  "framework": "nextjs",
+  "env": [
+    "NEXT_PUBLIC_API_URL",
+    "NEXT_PUBLIC_ANALYTICS_KEY"
+  ],
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://api.aimodels.cloud/:path*"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600, s-maxage=86400"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        }
+      ]
+    }
+  ]
+}
