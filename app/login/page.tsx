@@ -15,20 +15,23 @@ export default function Login() {
     setError('');
     setLoading(true);
 
-    // Simple test credentials
-    const validEmail = 'admin@aimodels.cloud';
-    const validPassword = 'admin123';
+    // Test credentials
+    const credentials = {
+      'master@aimodels.cloud': { password: 'master123', role: 'master_admin' },
+      'admin@aimodels.cloud': { password: 'admin123', role: 'admin' },
+    };
 
-    if (email === validEmail && password === validPassword) {
+    const userCreds = credentials[email as keyof typeof credentials];
+    if (userCreds && password === userCreds.password) {
       // Store auth in localStorage
       localStorage.setItem('aicloud_auth', JSON.stringify({
         email,
-        role: 'admin',
+        role: userCreds.role,
         loginTime: new Date().toISOString(),
       }));
       router.push('/dashboard');
     } else {
-      setError('Invalid credentials. Use admin@aimodels.cloud / admin123');
+      setError('Invalid credentials. Use:\nmaster@aimodels.cloud / master123\nor admin@aimodels.cloud / admin123');
     }
 
     setLoading(false);
@@ -91,13 +94,25 @@ export default function Login() {
 
           <div className="mt-6 pt-6 border-t border-slate-800">
             <p className="text-xs text-slate-400 text-center mb-3">Test Credentials:</p>
-            <div className="bg-slate-800/50 rounded-lg p-3 space-y-1">
-              <p className="text-xs text-slate-300">
-                <span className="text-slate-500">Email:</span> admin@aimodels.cloud
-              </p>
-              <p className="text-xs text-slate-300">
-                <span className="text-slate-500">Password:</span> admin123
-              </p>
+            <div className="bg-slate-800/50 rounded-lg p-3 space-y-3">
+              <div className="pb-3 border-b border-slate-700">
+                <p className="text-xs font-semibold text-blue-300 mb-1">Master Admin:</p>
+                <p className="text-xs text-slate-300">
+                  <span className="text-slate-500">Email:</span> master@aimodels.cloud
+                </p>
+                <p className="text-xs text-slate-300">
+                  <span className="text-slate-500">Password:</span> master123
+                </p>
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-slate-300 mb-1">Admin:</p>
+                <p className="text-xs text-slate-300">
+                  <span className="text-slate-500">Email:</span> admin@aimodels.cloud
+                </p>
+                <p className="text-xs text-slate-300">
+                  <span className="text-slate-500">Password:</span> admin123
+                </p>
+              </div>
             </div>
           </div>
         </div>
