@@ -1,18 +1,7 @@
 {
-  "domains": [
-    "aimodels.cloud",
-    "www.aimodels.cloud",
-    "aimodel.com.im",
-    "www.aimodel.com.im",
-    "api.aimodels.cloud"
-  ],
   "buildCommand": "npm run build",
   "outputDirectory": ".next",
   "framework": "nextjs",
-  "env": {
-    "NEXT_PUBLIC_API_URL": "@api_url",
-    "NEXT_PUBLIC_ANALYTICS_KEY": "@analytics_key"
-  },
   "rewrites": [
     {
       "source": "/api/:path*",
