@@ -1,0 +1,181 @@
+{
+  "logGroups": [
+    {
+      "name": "/ecs/aimodels-api",
+      "retentionInDays": 30,
+      "kmsKeyId": "arn:aws:kms:us-east-1:ACCOUNT_ID:key/KEY_ID"
+    }
+  ],
+  "metricFilters": [
+    {
+      "name": "ErrorCount",
+      "logGroupName": "/ecs/aimodels-api",
+      "filterPattern": "[time, request_id, level = ERROR*, ...]",
+      "metricTransformations": [
+        {
+          "metricName": "ErrorCount",
+          "metricNamespace": "aimodels/api",
+          "metricValue": "1",
+          "defaultValue": 0
+        }
+      ]
+    },
+    {
+      "name": "SlowRequests",
+      "logGroupName": "/ecs/aimodels-api",
+      "filterPattern": "[time, request_id, level, latency_ms > 5000]",
+      "metricTransformations": [
+        {
+          "metricName": "SlowRequestCount",
+          "metricNamespace": "aimodels/api",
+          "metricValue": "1",
+          "defaultValue": 0
+        }
+      ]
+    },
+    {
+      "name": "APIKeyErrors",
+      "logGroupName": "/ecs/aimodels-api",
+      "filterPattern": "\"Invalid API key\" OR \"Unauthorized\"",
+      "metricTransformations": [
+        {
+          "metricName": "AuthErrorCount",
+          "metricNamespace": "aimodels/api",
+          "metricValue": "1",
+          "defaultValue": 0
+        }
+      ]
+    },
+    {
+      "name": "RateLimitHits",
+      "logGroupName": "/ecs/aimodels-api",
+      "filterPattern": "\"Rate limit exceeded\"",
+      "metricTransformations": [
+        {
+          "metricName": "RateLimitCount",
+          "metricNamespace": "aimodels/api",
+          "metricValue": "1",
+          "defaultValue": 0
+        }
+      ]
+    }
+  ],
+  "dashboards": [
+    {
+      "name": "aimodels-api-dashboard",
+      "widgets": [
+        {
+          "type": "metric",
+          "title": "Request Count (5 min)",
+          "metrics": [
+            {
+              "namespace": "AWS/ApplicationELB",
+              "metricName": "RequestCount",
+              "stat": "Sum",
+              "period": 300
+            }
+          ]
+        },
+        {
+          "type": "metric",
+          "title": "Error Rate",
+          "metrics": [
+            {
+              "namespace": "AWS/ApplicationELB",
+              "metricName": "HTTPCode_Target_5XX_Count",
+              "stat": "Sum",
+              "period": 60
+            }
+          ]
+        },
+        {
+          "type": "metric",
+          "title": "Response Time (Average)",
+          "metrics": [
+            {
+              "namespace": "AWS/ApplicationELB",
+              "metricName": "TargetResponseTime",
+              "stat": "Average",
+              "period": 60
+            }
+          ]
+        },
+        {
+          "type": "metric",
+          "title": "CPU Utilization",
+          "metrics": [
+            {
+              "namespace": "AWS/ECS",
+              "metricName": "CPUUtilization",
+              "stat": "Average",
+              "period": 60
+            }
+          ]
+        },
+        {
+          "type": "metric",
+          "title": "Memory Utilization",
+          "metrics": [
+            {
+              "namespace": "AWS/ECS",
+              "metricName": "MemoryUtilization",
+              "stat": "Average",
+              "period": 60
+            }
+          ]
+        },
+        {
+          "type": "log",
+          "title": "Recent Errors",
+          "query": "fields @timestamp, @message | filter @message like /ERROR/ | stats count() by @message"
+        },
+        {
+          "type": "metric",
+          "title": "Active Task Count",
+          "metrics": [
+            {
+              "namespace": "AWS/ECS",
+              "metricName": "DesiredTaskCount",
+              "stat": "Average",
+              "period": 60
+            }
+          ]
+        },
+        {
+          "type": "metric",
+          "title": "Healthy Hosts",
+          "metrics": [
+            {
+              "namespace": "AWS/ApplicationELB",
+              "metricName": "HealthyHostCount",
+              "stat": "Average",
+              "period": 60
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "alarmActions": {
+    "snsTopicArn": "arn:aws:sns:us-east-1:ACCOUNT_ID:aimodels-alerts",
+    "slackWebhookUrl": "https://hooks.slack.com/services/YOUR/WEBHOOK/URL",
+    "emailAddresses": ["ops@aimodels.cloud", "alerts@aimodels.cloud"]
+  },
+  "insightRules": [
+    {
+      "name": "HighErrorRate",
+      "pattern": "[time, request_id, level = ERROR*, ...]",
+      "description": "Alert when error rate exceeds 5%"
+    },
+    {
+      "name": "SlowAPIResponses",
+      "pattern": "[time, request_id, ..., latency_ms > 5000]",
+      "description": "Alert on APIs taking longer than 5 seconds"
+    },
+    {
+      "name": "DatabaseConnectionIssues",
+      "pattern": "[time, request_id, ..., error = *connection*]",
+      "description": "Alert on database connection problems"
+    }
+  ]
+}

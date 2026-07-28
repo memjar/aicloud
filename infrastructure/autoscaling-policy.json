@@ -1,0 +1,111 @@
+{
+  "scalingPolicies": [
+    {
+      "name": "aimodels-api-scale-up",
+      "type": "TargetTrackingScaling",
+      "minCapacity": 2,
+      "maxCapacity": 10,
+      "targetTrackingConfiguration": {
+        "targetValue": 70,
+        "predefinedMetricSpecification": {
+          "predefinedMetricType": "ECSServiceAverageCPUUtilization"
+        },
+        "scaleOutCooldown": 60,
+        "scaleInCooldown": 300
+      }
+    },
+    {
+      "name": "aimodels-api-memory-scaling",
+      "type": "TargetTrackingScaling",
+      "minCapacity": 2,
+      "maxCapacity": 10,
+      "targetTrackingConfiguration": {
+        "targetValue": 80,
+        "predefinedMetricSpecification": {
+          "predefinedMetricType": "ECSServiceAverageMemoryUtilization"
+        },
+        "scaleOutCooldown": 60,
+        "scaleInCooldown": 300
+      }
+    },
+    {
+      "name": "aimodels-api-request-count",
+      "type": "TargetTrackingScaling",
+      "minCapacity": 2,
+      "maxCapacity": 10,
+      "targetTrackingConfiguration": {
+        "targetValue": 1000,
+        "customizedMetricSpecification": {
+          "metricName": "RequestCount",
+          "namespace": "AWS/ApplicationELB",
+          "statistic": "Sum",
+          "unit": "Count"
+        },
+        "scaleOutCooldown": 60,
+        "scaleInCooldown": 300
+      }
+    }
+  ],
+  "alarms": [
+    {
+      "name": "aimodels-api-cpu-high",
+      "metricName": "CPUUtilization",
+      "namespace": "AWS/ECS",
+      "statistic": "Average",
+      "period": 60,
+      "evaluationPeriods": 2,
+      "threshold": 80,
+      "comparisonOperator": "GreaterThanThreshold",
+      "treatMissingData": "notBreaching",
+      "actions": ["arn:aws:sns:us-east-1:ACCOUNT_ID:aimodels-alerts"]
+    },
+    {
+      "name": "aimodels-api-memory-high",
+      "metricName": "MemoryUtilization",
+      "namespace": "AWS/ECS",
+      "statistic": "Average",
+      "period": 60,
+      "evaluationPeriods": 2,
+      "threshold": 85,
+      "comparisonOperator": "GreaterThanThreshold",
+      "treatMissingData": "notBreaching",
+      "actions": ["arn:aws:sns:us-east-1:ACCOUNT_ID:aimodels-alerts"]
+    },
+    {
+      "name": "aimodels-api-error-rate-high",
+      "metricName": "HTTPCode_Target_5XX_Count",
+      "namespace": "AWS/ApplicationELB",
+      "statistic": "Sum",
+      "period": 60,
+      "evaluationPeriods": 1,
+      "threshold": 10,
+      "comparisonOperator": "GreaterThanThreshold",
+      "treatMissingData": "notBreaching",
+      "actions": ["arn:aws:sns:us-east-1:ACCOUNT_ID:aimodels-critical-alerts"]
+    },
+    {
+      "name": "aimodels-api-response-time-high",
+      "metricName": "TargetResponseTime",
+      "namespace": "AWS/ApplicationELB",
+      "statistic": "Average",
+      "period": 60,
+      "evaluationPeriods": 2,
+      "threshold": 5,
+      "comparisonOperator": "GreaterThanThreshold",
+      "treatMissingData": "notBreaching",
+      "actions": ["arn:aws:sns:us-east-1:ACCOUNT_ID:aimodels-alerts"]
+    },
+    {
+      "name": "aimodels-api-healthy-host-count-low",
+      "metricName": "HealthyHostCount",
+      "namespace": "AWS/ApplicationELB",
+      "statistic": "Average",
+      "period": 60,
+      "evaluationPeriods": 1,
+      "threshold": 1,
+      "comparisonOperator": "LessThanThreshold",
+      "treatMissingData": "breaching",
+      "actions": ["arn:aws:sns:us-east-1:ACCOUNT_ID:aimodels-critical-alerts"]
+    }
+  ]
+}

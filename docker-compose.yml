@@ -1,0 +1,107 @@
+version: '3.9'
+
+services:
+  # FastAPI Backend
+  api:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: aimodels-api-dev
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://aimodels:password@postgres:5432/aimodels_dev
+      - REDIS_URL=redis://redis:6379/0
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - TOGETHER_API_KEY=${TOGETHER_API_KEY}
+      - STRIPE_API_KEY=${STRIPE_API_KEY}
+      - ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8000
+      - LOG_LEVEL=DEBUG
+      - ENVIRONMENT=development
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend/src:/app/src
+    networks:
+      - aimodels-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: aimodels-postgres-dev
+    environment:
+      - POSTGRES_USER=aimodels
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=aimodels_dev
+      - POSTGRES_INITDB_ARGS=-c log_statement=all
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/01-init.sql
+    networks:
+      - aimodels-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aimodels"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    profiles:
+      - ""
+      - dev
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: aimodels-redis-dev
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - aimodels-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    profiles:
+      - ""
+      - dev
+
+  # PgAdmin for database management (optional)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: aimodels-pgadmin-dev
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@aimodels.local
+      - PGADMIN_DEFAULT_PASSWORD=admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - aimodels-network
+    profiles:
+      - dev
+      - debug
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  aimodels-network:
+    driver: bridge
