@@ -9,10 +9,10 @@
   "buildCommand": "npm run build",
   "outputDirectory": ".next",
   "framework": "nextjs",
-  "env": [
-    "NEXT_PUBLIC_API_URL",
-    "NEXT_PUBLIC_ANALYTICS_KEY"
-  ],
+  "env": {
+    "NEXT_PUBLIC_API_URL": "@api_url",
+    "NEXT_PUBLIC_ANALYTICS_KEY": "@analytics_key"
+  },
   "rewrites": [
     {
       "source": "/api/:path*",
